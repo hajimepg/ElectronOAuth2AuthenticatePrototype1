@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as url from "url";
 
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 
 let window: BrowserWindow | null;
 
@@ -35,4 +35,17 @@ app.on("activate", () => {
     if (window === null) {
         createWindow();
     }
+});
+
+let oauthWindow: BrowserWindow | null;
+
+ipcMain.on("StartOAuth", (event) => {
+    console.log("StartOAuth");
+
+    oauthWindow = new BrowserWindow({ width: 800, height: 600 });
+    oauthWindow.loadURL("https://www.google.com");
+
+    oauthWindow.on("closed", () => {
+        oauthWindow = null;
+    });
 });
