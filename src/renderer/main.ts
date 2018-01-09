@@ -4,11 +4,18 @@ import Vue from "vue";
 /* tslint:disable:object-literal-sort-keys */
 const app = new Vue({
     el: "#app",
-    data: {},
+    data: {
+        googleAccessToken: ""
+    },
     methods: {
-        oauth() {
-            ipcRenderer.send("StartOAuth");
+        googleOAuth() {
+            this.$data.googleAccessToken = "";
+            ipcRenderer.send("google-oauth");
         }
     }
 });
 /* tslint:enable:object-literal-sort-keys */
+
+ipcRenderer.on("google-oauth-reply", (event, accessToken) => {
+    app.$data.googleAccessToken = accessToken;
+});

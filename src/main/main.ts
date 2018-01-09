@@ -45,7 +45,7 @@ let oauthWindow: BrowserWindow | null;
 
 const oauthCredentials = JSON.parse(fs.readFileSync(path.join(__dirname, "../../credentials.json"), "utf-8"));
 
-ipcMain.on("StartOAuth", (event) => {
+ipcMain.on("google-oauth", (event) => {
     const clientId = oauthCredentials.google.client_id;
     const clientSecret = oauthCredentials.google.client_secret;
     const redirectUri = "http://localhost/";
@@ -68,8 +68,7 @@ ipcMain.on("StartOAuth", (event) => {
 
     oauthWindow = new BrowserWindow({ width: 800, height: 600 });
 
-    // tslint:disable-next-line:no-shadowed-variable
-    oauthWindow.webContents.on("will-navigate", (event, willNagivateUrl) => {
+    oauthWindow.webContents.on("will-navigate", (navigateEvent, willNagivateUrl) => {
         if (willNagivateUrl.startsWith(redirectUri)) {
             const parsedUrl = new url.URL(willNagivateUrl);
 
@@ -79,7 +78,6 @@ ipcMain.on("StartOAuth", (event) => {
             }
 
             const code = parsedUrl.searchParams.get("code");
-            console.log(`code=${code}`);
 
             axios.post("https://www.googleapis.com/oauth2/v4/token",
                 querystring.stringify({
@@ -92,7 +90,7 @@ ipcMain.on("StartOAuth", (event) => {
             )
             .then((response) => {
                 const accessToken = response.data.access_token;
-                console.log(`accessToken=${accessToken}`);
+                event.sender.send("google-oauth-reply", accessToken);
             })
             // tslint:disable-next-line:no-shadowed-variable
             .catch((error) => {
@@ -100,6 +98,10 @@ ipcMain.on("StartOAuth", (event) => {
             });
 
             event.preventDefault();
+
+            if (oauthWindow !== null) {
+                oauthWindow.close();
+            }
         }
     });
 

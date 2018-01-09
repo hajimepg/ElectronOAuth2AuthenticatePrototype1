@@ -8,7 +8,10 @@
 
     <body>
         <div id="app">
-            <input type="button" v-on:click="oauth" value="OAuth">
+            <input type="button" v-on:click="googleOAuth" value="Google OAuth">
+            <p v-if="googleAccessToken !== ''">
+                Google Access Token: {{ googleAccessToken }}
+            </p>
         </div>
         <script src="../dist/renderer/bundle.js"></script>
     </body>
