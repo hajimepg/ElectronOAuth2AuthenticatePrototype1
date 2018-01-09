@@ -3,6 +3,7 @@ import * as path from "path";
 import * as querystring from "querystring";
 import * as url from "url";
 
+import axios from "axios";
 import { app, BrowserWindow, ipcMain } from "electron";
 import * as lodash from "lodash";
 
@@ -46,6 +47,7 @@ const oauthCredentials = JSON.parse(fs.readFileSync(path.join(__dirname, "../../
 
 ipcMain.on("StartOAuth", (event) => {
     const clientId = oauthCredentials.google.client_id;
+    const clientSecret = oauthCredentials.google.client_secret;
     const redirectUri = "http://localhost/";
 
     const oauthUrl = url.format({
@@ -78,6 +80,24 @@ ipcMain.on("StartOAuth", (event) => {
 
             const code = parsedUrl.searchParams.get("code");
             console.log(`code=${code}`);
+
+            axios.post("https://www.googleapis.com/oauth2/v4/token",
+                querystring.stringify({
+                    client_id: clientId,
+                    client_secret: clientSecret,
+                    code,
+                    grant_type: "authorization_code",
+                    redirect_uri: redirectUri
+                })
+            )
+            .then((response) => {
+                const accessToken = response.data.access_token;
+                console.log(`accessToken=${accessToken}`);
+            })
+            // tslint:disable-next-line:no-shadowed-variable
+            .catch((error) => {
+                console.log(error);
+            });
 
             event.preventDefault();
         }
