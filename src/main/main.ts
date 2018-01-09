@@ -4,6 +4,7 @@ import * as querystring from "querystring";
 import * as url from "url";
 
 import { app, BrowserWindow, ipcMain } from "electron";
+import * as lodash from "lodash";
 
 let window: BrowserWindow | null;
 
@@ -44,14 +45,17 @@ let oauthWindow: BrowserWindow | null;
 const oauthCredentials = JSON.parse(fs.readFileSync(path.join(__dirname, "../../credentials.json"), "utf-8"));
 
 ipcMain.on("StartOAuth", (event) => {
+    const clientId = oauthCredentials.google.client_id;
+    const redirectUri = "http://localhost/";
+
     const oauthUrl = url.format({
         hostname: "accounts.google.com",
         pathname: "/o/oauth2/v2/auth",
         protocol: "https",
         search: querystring.stringify({
             access_type: "online",
-            client_id: oauthCredentials.google.client_id,
-            redirect_uri: "http://localhost/",
+            client_id: clientId,
+            redirect_uri: redirectUri,
             response_type: "code",
             scope: [
                 "https://www.googleapis.com/auth/plus.me",
@@ -61,6 +65,23 @@ ipcMain.on("StartOAuth", (event) => {
     });
 
     oauthWindow = new BrowserWindow({ width: 800, height: 600 });
+
+    // tslint:disable-next-line:no-shadowed-variable
+    oauthWindow.webContents.on("will-navigate", (event, willNagivateUrl) => {
+        if (willNagivateUrl.startsWith(redirectUri)) {
+            const parsedUrl = new url.URL(willNagivateUrl);
+
+            const error = parsedUrl.searchParams.get("error");
+            if (error != null) {
+                // TODO: エラー処理を実装する
+            }
+
+            const code = parsedUrl.searchParams.get("code");
+            console.log(`code=${code}`);
+
+            event.preventDefault();
+        }
+    });
 
     oauthWindow.loadURL(oauthUrl);
 
