@@ -1,4 +1,6 @@
+import * as fs from "fs";
 import * as path from "path";
+import * as querystring from "querystring";
 import * as url from "url";
 
 import { app, BrowserWindow, ipcMain } from "electron";
@@ -39,11 +41,28 @@ app.on("activate", () => {
 
 let oauthWindow: BrowserWindow | null;
 
+const oauthCredentials = JSON.parse(fs.readFileSync(path.join(__dirname, "../../credentials.json"), "utf-8"));
+
 ipcMain.on("StartOAuth", (event) => {
-    console.log("StartOAuth");
+    const oauthUrl = url.format({
+        hostname: "accounts.google.com",
+        pathname: "/o/oauth2/v2/auth",
+        protocol: "https",
+        search: querystring.stringify({
+            access_type: "online",
+            client_id: oauthCredentials.google.client_id,
+            redirect_uri: "http://localhost/",
+            response_type: "code",
+            scope: [
+                "https://www.googleapis.com/auth/plus.me",
+            ]
+        }),
+        slashes: true,
+    });
 
     oauthWindow = new BrowserWindow({ width: 800, height: 600 });
-    oauthWindow.loadURL("https://www.google.com");
+
+    oauthWindow.loadURL(oauthUrl);
 
     oauthWindow.on("closed", () => {
         oauthWindow = null;
