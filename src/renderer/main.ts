@@ -5,17 +5,24 @@ import Vue from "vue";
 const app = new Vue({
     el: "#app",
     data: {
-        googleAccessToken: ""
+        googleAccessToken: "",
+        googleErrorMessage: "",
     },
     methods: {
         googleOAuth() {
             this.$data.googleAccessToken = "";
+            this.$data.googleErrorMessage = "";
             ipcRenderer.send("google-oauth");
         }
     }
 });
 /* tslint:enable:object-literal-sort-keys */
 
-ipcRenderer.on("google-oauth-reply", (event, accessToken) => {
-    app.$data.googleAccessToken = accessToken;
+ipcRenderer.on("google-oauth-reply", (event, error, accessToken) => {
+    if (error !== null) {
+        app.$data.googleErrorMessage = error;
+    }
+    else {
+        app.$data.googleAccessToken = accessToken;
+    }
 });

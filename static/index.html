@@ -12,6 +12,9 @@
             <p v-if="googleAccessToken !== ''">
                 Google Access Token: {{ googleAccessToken }}
             </p>
+            <p v-else-if="googleErrorMessage !== ''">
+                Error: {{ googleErrorMessage }}
+            </p>
         </div>
         <script src="../dist/renderer/bundle.js"></script>
     </body>

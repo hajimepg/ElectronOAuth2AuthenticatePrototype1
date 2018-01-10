@@ -42,6 +42,7 @@ app.on("activate", () => {
 });
 
 let oauthWindow: BrowserWindow | null;
+let isReplyIPC = false;
 
 const oauthCredentials = JSON.parse(fs.readFileSync(path.join(__dirname, "../../credentials.json"), "utf-8"));
 
@@ -67,35 +68,38 @@ ipcMain.on("google-oauth", (event) => {
     });
 
     oauthWindow = new BrowserWindow({ width: 800, height: 600 });
+    isReplyIPC = false;
 
     oauthWindow.webContents.on("will-navigate", (navigateEvent, willNagivateUrl) => {
         if (willNagivateUrl.startsWith(redirectUri)) {
             const parsedUrl = new url.URL(willNagivateUrl);
 
-            const error = parsedUrl.searchParams.get("error");
-            if (error != null) {
-                // TODO: エラー処理を実装する
+            if (parsedUrl.searchParams.has("error")) {
+                const error = parsedUrl.searchParams.get("error");
+                event.sender.send("google-oauth-reply", error, null);
+                isReplyIPC = true;
             }
+            else {
+                const code = parsedUrl.searchParams.get("code");
 
-            const code = parsedUrl.searchParams.get("code");
-
-            axios.post("https://www.googleapis.com/oauth2/v4/token",
-                querystring.stringify({
-                    client_id: clientId,
-                    client_secret: clientSecret,
-                    code,
-                    grant_type: "authorization_code",
-                    redirect_uri: redirectUri
+                axios.post("https://www.googleapis.com/oauth2/v4/token",
+                    querystring.stringify({
+                        client_id: clientId,
+                        client_secret: clientSecret,
+                        code,
+                        grant_type: "authorization_code",
+                        redirect_uri: redirectUri
+                    })
+                )
+                .then((response) => {
+                    event.sender.send("google-oauth-reply", null, response.data.access_token);
+                    isReplyIPC = true;
                 })
-            )
-            .then((response) => {
-                const accessToken = response.data.access_token;
-                event.sender.send("google-oauth-reply", accessToken);
-            })
-            // tslint:disable-next-line:no-shadowed-variable
-            .catch((error) => {
-                console.log(error);
-            });
+                .catch((error) => {
+                    event.sender.send("google-oauth-reply", error, null);
+                    isReplyIPC = true;
+                });
+            }
 
             event.preventDefault();
 
@@ -108,6 +112,10 @@ ipcMain.on("google-oauth", (event) => {
     oauthWindow.loadURL(oauthUrl);
 
     oauthWindow.on("closed", () => {
+        if (isReplyIPC === false) {
+            event.sender.send("google-oauth-reply", "Authentication cancel.", null);
+            isReplyIPC = true;
+        }
         oauthWindow = null;
     });
 });
