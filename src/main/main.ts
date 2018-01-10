@@ -7,6 +7,8 @@ import axios from "axios";
 import { app, BrowserWindow, ipcMain } from "electron";
 import * as lodash from "lodash";
 
+import GoogleOAuth from "./googleOAuth";
+
 let window: BrowserWindow | null;
 
 function createWindow() {
@@ -41,81 +43,16 @@ app.on("activate", () => {
     }
 });
 
-let googleOAuthWindow: BrowserWindow | null;
-let isReplyGoogleOAuthIPC = false;
+let googleOAuth: GoogleOAuth;
 
 const oauthCredentials = JSON.parse(fs.readFileSync(path.join(__dirname, "../../credentials.json"), "utf-8"));
 
 ipcMain.on("google-oauth", (event) => {
-    const clientId = oauthCredentials.google.client_id;
-    const clientSecret = oauthCredentials.google.client_secret;
-    const redirectUri = "http://localhost/";
+    googleOAuth = new GoogleOAuth(
+        oauthCredentials.google.client_id,
+        oauthCredentials.google.client_secret,
+        event.sender
+    );
 
-    const oauthUrl = url.format({
-        hostname: "accounts.google.com",
-        pathname: "/o/oauth2/v2/auth",
-        protocol: "https",
-        search: querystring.stringify({
-            access_type: "online",
-            client_id: clientId,
-            redirect_uri: redirectUri,
-            response_type: "code",
-            scope: [
-                "https://www.googleapis.com/auth/plus.me",
-            ]
-        }),
-        slashes: true,
-    });
-
-    googleOAuthWindow = new BrowserWindow({ width: 800, height: 600 });
-    isReplyGoogleOAuthIPC = false;
-
-    googleOAuthWindow.webContents.on("will-navigate", (navigateEvent, willNagivateUrl) => {
-        if (willNagivateUrl.startsWith(redirectUri)) {
-            const parsedUrl = new url.URL(willNagivateUrl);
-
-            if (parsedUrl.searchParams.has("error")) {
-                const error = parsedUrl.searchParams.get("error");
-                event.sender.send("google-oauth-reply", error, null);
-                isReplyGoogleOAuthIPC = true;
-            }
-            else {
-                const code = parsedUrl.searchParams.get("code");
-
-                axios.post("https://www.googleapis.com/oauth2/v4/token",
-                    querystring.stringify({
-                        client_id: clientId,
-                        client_secret: clientSecret,
-                        code,
-                        grant_type: "authorization_code",
-                        redirect_uri: redirectUri
-                    })
-                )
-                .then((response) => {
-                    event.sender.send("google-oauth-reply", null, response.data.access_token);
-                    isReplyGoogleOAuthIPC = true;
-                })
-                .catch((error) => {
-                    event.sender.send("google-oauth-reply", error, null);
-                    isReplyGoogleOAuthIPC = true;
-                });
-            }
-
-            event.preventDefault();
-
-            if (googleOAuthWindow !== null) {
-                googleOAuthWindow.close();
-            }
-        }
-    });
-
-    googleOAuthWindow.loadURL(oauthUrl);
-
-    googleOAuthWindow.on("closed", () => {
-        if (isReplyGoogleOAuthIPC === false) {
-            event.sender.send("google-oauth-reply", "Authentication cancel.", null);
-            isReplyGoogleOAuthIPC = true;
-        }
-        googleOAuthWindow = null;
-    });
+    googleOAuth.showWindow();
 });
