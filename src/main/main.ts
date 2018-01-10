@@ -41,8 +41,8 @@ app.on("activate", () => {
     }
 });
 
-let oauthWindow: BrowserWindow | null;
-let isReplyIPC = false;
+let googleOAuthWindow: BrowserWindow | null;
+let isReplyGoogleOAuthIPC = false;
 
 const oauthCredentials = JSON.parse(fs.readFileSync(path.join(__dirname, "../../credentials.json"), "utf-8"));
 
@@ -67,17 +67,17 @@ ipcMain.on("google-oauth", (event) => {
         slashes: true,
     });
 
-    oauthWindow = new BrowserWindow({ width: 800, height: 600 });
-    isReplyIPC = false;
+    googleOAuthWindow = new BrowserWindow({ width: 800, height: 600 });
+    isReplyGoogleOAuthIPC = false;
 
-    oauthWindow.webContents.on("will-navigate", (navigateEvent, willNagivateUrl) => {
+    googleOAuthWindow.webContents.on("will-navigate", (navigateEvent, willNagivateUrl) => {
         if (willNagivateUrl.startsWith(redirectUri)) {
             const parsedUrl = new url.URL(willNagivateUrl);
 
             if (parsedUrl.searchParams.has("error")) {
                 const error = parsedUrl.searchParams.get("error");
                 event.sender.send("google-oauth-reply", error, null);
-                isReplyIPC = true;
+                isReplyGoogleOAuthIPC = true;
             }
             else {
                 const code = parsedUrl.searchParams.get("code");
@@ -93,29 +93,29 @@ ipcMain.on("google-oauth", (event) => {
                 )
                 .then((response) => {
                     event.sender.send("google-oauth-reply", null, response.data.access_token);
-                    isReplyIPC = true;
+                    isReplyGoogleOAuthIPC = true;
                 })
                 .catch((error) => {
                     event.sender.send("google-oauth-reply", error, null);
-                    isReplyIPC = true;
+                    isReplyGoogleOAuthIPC = true;
                 });
             }
 
             event.preventDefault();
 
-            if (oauthWindow !== null) {
-                oauthWindow.close();
+            if (googleOAuthWindow !== null) {
+                googleOAuthWindow.close();
             }
         }
     });
 
-    oauthWindow.loadURL(oauthUrl);
+    googleOAuthWindow.loadURL(oauthUrl);
 
-    oauthWindow.on("closed", () => {
-        if (isReplyIPC === false) {
+    googleOAuthWindow.on("closed", () => {
+        if (isReplyGoogleOAuthIPC === false) {
             event.sender.send("google-oauth-reply", "Authentication cancel.", null);
-            isReplyIPC = true;
+            isReplyGoogleOAuthIPC = true;
         }
-        oauthWindow = null;
+        googleOAuthWindow = null;
     });
 });
