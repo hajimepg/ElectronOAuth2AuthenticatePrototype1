@@ -5,8 +5,28 @@ import axios from "axios";
 import { BrowserWindow } from "electron";
 
 export default class GoogleOAuth {
+    public static readonly redirectUri = "http://localhost/";
+
     public clientId: string;
     public clientSecret: string;
+
+    public get oauthUrl(): string {
+        return url.format({
+            hostname: "accounts.google.com",
+            pathname: "/o/oauth2/v2/auth",
+            protocol: "https",
+            search: querystring.stringify({
+                access_type: "online",
+                client_id: this.clientId,
+                redirect_uri: GoogleOAuth.redirectUri,
+                response_type: "code",
+                scope: [
+                    "https://www.googleapis.com/auth/plus.me",
+                ]
+            }),
+            slashes: true,
+        });
+    }
 
     public constructor(
         clientId: string,
@@ -19,23 +39,6 @@ export default class GoogleOAuth {
     public getAccessToken(): Promise<string> {
         let isReceiveCallback = false;
         const self = this;
-        const redirectUri = "http://localhost/";
-
-        const oauthUrl = url.format({
-            hostname: "accounts.google.com",
-            pathname: "/o/oauth2/v2/auth",
-            protocol: "https",
-            search: querystring.stringify({
-                access_type: "online",
-                client_id: this.clientId,
-                redirect_uri: redirectUri,
-                response_type: "code",
-                scope: [
-                    "https://www.googleapis.com/auth/plus.me",
-                ]
-            }),
-            slashes: true,
-        });
 
         return new Promise<string>((resolve, reject) => {
             const window = new BrowserWindow({ width: 800, height: 600 });
@@ -47,7 +50,7 @@ export default class GoogleOAuth {
             });
 
             window.webContents.on("will-navigate", (event, willNagivateUrl) => {
-                if (willNagivateUrl.startsWith(redirectUri)) {
+                if (willNagivateUrl.startsWith(GoogleOAuth.redirectUri)) {
                     isReceiveCallback = true;
                     const parsedUrl = new url.URL(willNagivateUrl);
 
@@ -64,7 +67,7 @@ export default class GoogleOAuth {
                                 client_secret: self.clientSecret,
                                 code,
                                 grant_type: "authorization_code",
-                                redirect_uri: redirectUri
+                                redirect_uri: GoogleOAuth.redirectUri
                             })
                         )
                         .then((response) => {
@@ -81,7 +84,7 @@ export default class GoogleOAuth {
                 }
             });
 
-            window.loadURL(oauthUrl);
+            window.loadURL(this.oauthUrl);
         });
     }
 }
