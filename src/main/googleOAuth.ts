@@ -29,9 +29,9 @@ export default class GoogleOAuth {
     }
 
     public getAccessToken(): Promise<string> {
-        let isReceiveCallback = false;
-
         return new Promise<string>((resolve, reject) => {
+            let isReceiveCallback = false;
+
             const window = new BrowserWindow({ width: 800, height: 600 });
 
             window.on("closed", () => {
