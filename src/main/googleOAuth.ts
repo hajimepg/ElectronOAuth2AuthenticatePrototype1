@@ -8,8 +8,6 @@ export default class GoogleOAuth {
     public clientId: string;
     public clientSecret: string;
 
-    public isReplyIPC = false;
-
     public constructor(
         clientId: string,
         clientSecret: string
@@ -19,6 +17,7 @@ export default class GoogleOAuth {
     }
 
     public getAccessToken(): Promise<string> {
+        let isReceiveCallback = false;
         const self = this;
         const redirectUri = "http://localhost/";
 
@@ -42,24 +41,22 @@ export default class GoogleOAuth {
             const window = new BrowserWindow({ width: 800, height: 600 });
 
             window.on("closed", () => {
-                if (this.isReplyIPC === false) {
+                if (isReceiveCallback === false) {
                     reject(new Error("Authentication cancel."));
-                    self.isReplyIPC = true;
                 }
             });
 
             window.webContents.on("will-navigate", (event, willNagivateUrl) => {
                 if (willNagivateUrl.startsWith(redirectUri)) {
+                    isReceiveCallback = true;
                     const parsedUrl = new url.URL(willNagivateUrl);
 
                     if (parsedUrl.searchParams.has("error")) {
                         const error = parsedUrl.searchParams.get("error");
                         reject(error);
-                        self.isReplyIPC = true;
                     }
                     else {
                         const code = parsedUrl.searchParams.get("code");
-                        self.isReplyIPC = true;
 
                         axios.post("https://www.googleapis.com/oauth2/v4/token",
                             querystring.stringify({
