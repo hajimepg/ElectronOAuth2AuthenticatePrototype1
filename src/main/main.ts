@@ -58,6 +58,6 @@ ipcMain.on("google-oauth", (event) => {
             event.sender.send("google-oauth-reply", null, accessToken);
         })
         .catch((error: Error) => {
-            event.sender.send("google-oauth-reply", error.message);
+            event.sender.send("google-oauth-reply", error.message, null);
         });
 });
