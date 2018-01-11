@@ -7,8 +7,8 @@ import { BrowserWindow } from "electron";
 export default class GoogleOAuth {
     public static readonly redirectUri = "http://localhost/";
 
-    public clientId: string;
-    public clientSecret: string;
+    public constructor(public clientId: string, public clientSecret: string) {
+    }
 
     public get oauthUrl(): string {
         return url.format({
@@ -26,14 +26,6 @@ export default class GoogleOAuth {
             }),
             slashes: true,
         });
-    }
-
-    public constructor(
-        clientId: string,
-        clientSecret: string
-    ) {
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
     }
 
     public getAccessToken(): Promise<string> {
