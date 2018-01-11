@@ -30,7 +30,6 @@ export default class GoogleOAuth {
 
     public getAccessToken(): Promise<string> {
         let isReceiveCallback = false;
-        const self = this;
 
         return new Promise<string>((resolve, reject) => {
             const window = new BrowserWindow({ width: 800, height: 600 });
@@ -55,8 +54,8 @@ export default class GoogleOAuth {
 
                         axios.post("https://www.googleapis.com/oauth2/v4/token",
                             querystring.stringify({
-                                client_id: self.clientId,
-                                client_secret: self.clientSecret,
+                                client_id: this.clientId,
+                                client_secret: this.clientSecret,
                                 code,
                                 grant_type: "authorization_code",
                                 redirect_uri: GoogleOAuth.redirectUri
