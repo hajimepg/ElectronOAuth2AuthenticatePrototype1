@@ -8,7 +8,6 @@ export default class GoogleOAuth {
     public clientId: string;
     public clientSecret: string;
 
-    public window: BrowserWindow | null;
     public isReplyIPC = false;
 
     public constructor(
@@ -40,17 +39,16 @@ export default class GoogleOAuth {
         });
 
         return new Promise<string>((resolve, reject) => {
-            this.window = new BrowserWindow({ width: 800, height: 600 });
+            const window = new BrowserWindow({ width: 800, height: 600 });
 
-            this.window.on("closed", () => {
+            window.on("closed", () => {
                 if (this.isReplyIPC === false) {
                     reject(new Error("Authentication cancel."));
                     self.isReplyIPC = true;
                 }
-                self.window = null;
             });
 
-            this.window.webContents.on("will-navigate", (event, willNagivateUrl) => {
+            window.webContents.on("will-navigate", (event, willNagivateUrl) => {
                 if (willNagivateUrl.startsWith(redirectUri)) {
                     const parsedUrl = new url.URL(willNagivateUrl);
 
@@ -82,13 +80,11 @@ export default class GoogleOAuth {
 
                     event.preventDefault();
 
-                    if (self.window !== null) {
-                        self.window.close();
-                    }
+                    window.close();
                 }
             });
 
-            this.window.loadURL(oauthUrl);
+            window.loadURL(oauthUrl);
         });
     }
 }
