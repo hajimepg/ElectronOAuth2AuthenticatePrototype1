@@ -5,12 +5,12 @@ import axios from "axios";
 import { BrowserWindow } from "electron";
 
 export default class GoogleOAuth {
-    public static readonly redirectUri = "http://localhost/";
+    protected static readonly redirectUri = "http://localhost/";
 
     public constructor(public clientId: string, public clientSecret: string) {
     }
 
-    public get oauthUrl(): string {
+    protected get oauthUrl(): string {
         return url.format({
             hostname: "accounts.google.com",
             pathname: "/o/oauth2/v2/auth",
