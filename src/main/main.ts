@@ -50,9 +50,14 @@ const oauthCredentials = JSON.parse(fs.readFileSync(path.join(__dirname, "../../
 ipcMain.on("google-oauth", (event) => {
     googleOAuth = new GoogleOAuth(
         oauthCredentials.google.client_id,
-        oauthCredentials.google.client_secret,
-        event.sender
+        oauthCredentials.google.client_secret
     );
 
-    googleOAuth.showWindow();
+    googleOAuth.getAccessToken()
+        .then((accessToken) => {
+            event.sender.send("google-oauth-reply", null, accessToken);
+        })
+        .catch((error: Error) => {
+            event.sender.send("google-oauth-reply", error.message);
+        });
 });
