@@ -8,6 +8,7 @@ import { app, BrowserWindow, ipcMain } from "electron";
 import * as lodash from "lodash";
 
 import GoogleOAuth from "./googleOAuth";
+import PocketOAuth from "./pocketOAuth";
 
 let window: BrowserWindow | null;
 
@@ -43,9 +44,9 @@ app.on("activate", () => {
     }
 });
 
-let googleOAuth: GoogleOAuth;
-
 const oauthCredentials = JSON.parse(fs.readFileSync(path.join(__dirname, "../../credentials.json"), "utf-8"));
+
+let googleOAuth: GoogleOAuth;
 
 ipcMain.on("google-oauth", (event) => {
     googleOAuth = new GoogleOAuth(
@@ -59,5 +60,19 @@ ipcMain.on("google-oauth", (event) => {
         })
         .catch((error: Error) => {
             event.sender.send("google-oauth-reply", error.message, null);
+        });
+});
+
+let pocketOAuth: PocketOAuth;
+
+ipcMain.on("pocket-oauth", (event) => {
+    pocketOAuth = new PocketOAuth(oauthCredentials.pocket.consumer_key);
+
+    pocketOAuth.getAccessToken()
+        .then((accessToken) => {
+            event.sender.send("pocket-oauth-reply", null, accessToken);
+        })
+        .catch((error: Error) => {
+            event.sender.send("pocket-oauth-reply", error.message, null);
         });
 });

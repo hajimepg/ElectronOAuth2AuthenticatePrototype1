@@ -15,6 +15,14 @@
             <p v-else-if="googleErrorMessage !== ''">
                 Error: {{ googleErrorMessage }}
             </p>
+
+            <input type="button" v-on:click="pocketOAuth" value="Pocket OAuth">
+            <p v-if="pocketAccessToken !== ''">
+                Google Access Token: {{ pocketAccessToken }}
+            </p>
+            <p v-else-if="pocketErrorMessage !== ''">
+                Error: {{ pocketErrorMessage }}
+            </p>
         </div>
         <script src="../dist/renderer/bundle.js"></script>
     </body>
