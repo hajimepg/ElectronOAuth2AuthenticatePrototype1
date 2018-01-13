@@ -5,7 +5,7 @@ import axios from "axios";
 import { BrowserWindow, shell } from "electron";
 import * as Koa from "koa";
 
-export default class PocketOAuth {
+export default class PocketAuth {
     protected static readonly redirectUri = "http://localhost:3000/";
 
     protected webServer: Koa;
@@ -18,7 +18,7 @@ export default class PocketOAuth {
             axios.post("https://getpocket.com/v3/oauth/request",
                 {
                     consumer_key: this.consumerKey,
-                    redirect_uri: PocketOAuth.redirectUri
+                    redirect_uri: PocketAuth.redirectUri
                 },
                 {
                     headers: { "X-Accept": "application/json" }
@@ -39,7 +39,7 @@ export default class PocketOAuth {
                     });
                     this.webServer.listen(3000);
 
-                    shell.openExternal(this.oauthUrl(requestToken));
+                    shell.openExternal(this.authUrl(requestToken));
                 });
             })
             .then((requestToken: string) => {
@@ -67,13 +67,13 @@ export default class PocketOAuth {
         });
     }
 
-    protected oauthUrl(requestToken: string): string {
+    protected authUrl(requestToken: string): string {
         return url.format({
             hostname: "getpocket.com",
             pathname: "/auth/authorize",
             protocol: "https",
             search: querystring.stringify({
-                redirect_uri: PocketOAuth.redirectUri,
+                redirect_uri: PocketAuth.redirectUri,
                 request_token: requestToken
             }),
             slashes: true,

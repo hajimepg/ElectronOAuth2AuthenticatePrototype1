@@ -8,7 +8,7 @@
 
     <body>
         <div id="app">
-            <input type="button" v-on:click="googleOAuth" value="Google OAuth">
+            <input type="button" v-on:click="googleAuth" value="Google Auth">
             <p v-if="googleAccessToken !== ''">
                 Google Access Token: {{ googleAccessToken }}
             </p>
@@ -16,7 +16,7 @@
                 Error: {{ googleErrorMessage }}
             </p>
 
-            <input type="button" v-on:click="pocketOAuth" value="Pocket OAuth">
+            <input type="button" v-on:click="pocketAuth" value="Pocket Auth">
             <p v-if="pocketAccessToken !== ''">
                 Pocket Access Token: {{ pocketAccessToken }}
             </p>

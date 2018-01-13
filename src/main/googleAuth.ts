@@ -4,13 +4,13 @@ import * as url from "url";
 import axios from "axios";
 import { BrowserWindow } from "electron";
 
-export default class GoogleOAuth {
+export default class GoogleAuth {
     protected static readonly redirectUri = "http://localhost/";
 
     public constructor(public clientId: string, public clientSecret: string) {
     }
 
-    protected get oauthUrl(): string {
+    protected get authUrl(): string {
         return url.format({
             hostname: "accounts.google.com",
             pathname: "/o/oauth2/v2/auth",
@@ -18,7 +18,7 @@ export default class GoogleOAuth {
             search: querystring.stringify({
                 access_type: "online",
                 client_id: this.clientId,
-                redirect_uri: GoogleOAuth.redirectUri,
+                redirect_uri: GoogleAuth.redirectUri,
                 response_type: "code",
                 scope: [
                     "https://www.googleapis.com/auth/plus.me",
@@ -41,7 +41,7 @@ export default class GoogleOAuth {
             });
 
             window.webContents.on("will-navigate", (event, willNagivateUrl) => {
-                if (willNagivateUrl.startsWith(GoogleOAuth.redirectUri)) {
+                if (willNagivateUrl.startsWith(GoogleAuth.redirectUri)) {
                     isReceiveCallback = true;
                     const parsedUrl = new url.URL(willNagivateUrl);
 
@@ -58,7 +58,7 @@ export default class GoogleOAuth {
                                 client_secret: this.clientSecret,
                                 code,
                                 grant_type: "authorization_code",
-                                redirect_uri: GoogleOAuth.redirectUri
+                                redirect_uri: GoogleAuth.redirectUri
                             })
                         )
                         .then((response) => {
@@ -75,7 +75,7 @@ export default class GoogleOAuth {
                 }
             });
 
-            window.loadURL(this.oauthUrl);
+            window.loadURL(this.authUrl);
         });
     }
 }

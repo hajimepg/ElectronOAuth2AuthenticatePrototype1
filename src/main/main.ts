@@ -7,8 +7,8 @@ import axios from "axios";
 import { app, BrowserWindow, ipcMain } from "electron";
 import * as lodash from "lodash";
 
-import GoogleOAuth from "./googleOAuth";
-import PocketOAuth from "./pocketOAuth";
+import GoogleAuth from "./googleAuth";
+import PocketAuth from "./pocketAuth";
 
 let window: BrowserWindow | null;
 
@@ -44,38 +44,38 @@ app.on("activate", () => {
     }
 });
 
-const oauthCredentials = JSON.parse(fs.readFileSync(path.join(__dirname, "../../credentials.json"), "utf-8"));
+const authCredentials = JSON.parse(fs.readFileSync(path.join(__dirname, "../../credentials.json"), "utf-8"));
 
-let googleOAuth: GoogleOAuth;
+let googleAuth: GoogleAuth;
 
-ipcMain.on("google-oauth", (event) => {
-    googleOAuth = new GoogleOAuth(
-        oauthCredentials.google.client_id,
-        oauthCredentials.google.client_secret
+ipcMain.on("google-auth", (event) => {
+    googleAuth = new GoogleAuth(
+        authCredentials.google.client_id,
+        authCredentials.google.client_secret
     );
 
-    googleOAuth.getAccessToken()
+    googleAuth.getAccessToken()
         .then((accessToken) => {
-            event.sender.send("google-oauth-reply", null, accessToken);
+            event.sender.send("google-auth-reply", null, accessToken);
         })
         .catch((error: Error) => {
-            event.sender.send("google-oauth-reply", error.message, null);
+            event.sender.send("google-auth-reply", error.message, null);
         });
 });
 
-let pocketOAuth: PocketOAuth;
+let pocketAuth: PocketAuth;
 
-ipcMain.on("pocket-oauth", (event) => {
-    pocketOAuth = new PocketOAuth(oauthCredentials.pocket.consumer_key);
+ipcMain.on("pocket-auth", (event) => {
+    pocketAuth = new PocketAuth(authCredentials.pocket.consumer_key);
 
-    pocketOAuth.getAccessToken()
+    pocketAuth.getAccessToken()
         .then((accessToken) => {
             if (window !== null) {
                 window.show();
             }
-            event.sender.send("pocket-oauth-reply", null, accessToken);
+            event.sender.send("pocket-auth-reply", null, accessToken);
         })
         .catch((error: Error) => {
-            event.sender.send("pocket-oauth-reply", error.message, null);
+            event.sender.send("pocket-auth-reply", error.message, null);
         });
 });

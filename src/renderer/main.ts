@@ -11,21 +11,21 @@ const app = new Vue({
         pocketErrorMessage: "",
     },
     methods: {
-        googleOAuth() {
+        googleAuth() {
             this.$data.googleAccessToken = "";
             this.$data.googleErrorMessage = "";
-            ipcRenderer.send("google-oauth");
+            ipcRenderer.send("google-auth");
         },
-        pocketOAuth() {
+        pocketAuth() {
             this.$data.pocketAccessToken = "";
             this.$data.pocketErrorMessage = "";
-            ipcRenderer.send("pocket-oauth");
+            ipcRenderer.send("pocket-auth");
         }
     }
 });
 /* tslint:enable:object-literal-sort-keys */
 
-ipcRenderer.on("google-oauth-reply", (event, error, accessToken) => {
+ipcRenderer.on("google-auth-reply", (event, error, accessToken) => {
     if (error !== null) {
         app.$data.googleErrorMessage = error;
     }
@@ -34,7 +34,7 @@ ipcRenderer.on("google-oauth-reply", (event, error, accessToken) => {
     }
 });
 
-ipcRenderer.on("pocket-oauth-reply", (event, error, accessToken) => {
+ipcRenderer.on("pocket-auth-reply", (event, error, accessToken) => {
     if (error !== null) {
         app.$data.pocketErrorMessage = error;
     }
