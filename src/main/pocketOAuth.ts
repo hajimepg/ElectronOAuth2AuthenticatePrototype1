@@ -3,9 +3,12 @@ import * as url from "url";
 
 import axios from "axios";
 import { BrowserWindow, shell } from "electron";
+import * as Koa from "koa";
 
 export default class PocketOAuth {
-    protected static readonly redirectUri = "http://localhost/";
+    protected static readonly redirectUri = "http://localhost:3000/";
+
+    protected webServer: Koa;
 
     public constructor(public consumerKey: string) {
     }
@@ -24,6 +27,35 @@ export default class PocketOAuth {
             .then((response) => {
                 return response.data.code;
             })
+            .then((requestToken: string) => {
+                return new Promise<string>((resolve2, reject2) => {
+                    this.webServer = new Koa();
+                    this.webServer.use((ctx) => {
+                        if (ctx.request.path === "/") {
+                            ctx.response.body = "<html><body><script>window.close();</script></body></html>";
+                            this.webServer = null;
+                            resolve2(requestToken);
+                        }
+                    });
+                    this.webServer.listen(3000);
+
+                    shell.openExternal(this.oauthUrl(requestToken));
+                });
+            })
+            .then((requestToken: string) => {
+                return axios.post("https://getpocket.com/v3/oauth/authorize",
+                    {
+                        code: requestToken,
+                        consumer_key: this.consumerKey
+                    },
+                    {
+                        headers: { "X-Accept": "application/json" }
+                    }
+                );
+            })
+            .then((response) => {
+                resolve(response.data.access_token);
+            })
             .catch((error) => {
                 if (error.response !== undefined && "x-error" in error.response.headers) {
                     reject(new Error(error.response.headers["x-error"]));
@@ -31,9 +63,6 @@ export default class PocketOAuth {
                 else {
                     reject(error);
                 }
-            })
-            .then((requestToken: string) => {
-                shell.openExternal(this.oauthUrl(requestToken));
             });
         });
     }

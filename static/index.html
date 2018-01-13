@@ -18,7 +18,7 @@
 
             <input type="button" v-on:click="pocketOAuth" value="Pocket OAuth">
             <p v-if="pocketAccessToken !== ''">
-                Google Access Token: {{ pocketAccessToken }}
+                Pocket Access Token: {{ pocketAccessToken }}
             </p>
             <p v-else-if="pocketErrorMessage !== ''">
                 Error: {{ pocketErrorMessage }}

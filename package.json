@@ -7,6 +7,7 @@
     "@types/node": "^8.5.7",
     "axios": "^0.17.1",
     "electron": "^1.7.10",
+    "koa": "^2.4.1",
     "lodash": "^4.17.4",
     "ts-loader": "^3.2.0",
     "tslint": "^5.8.0",

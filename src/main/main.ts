@@ -70,6 +70,9 @@ ipcMain.on("pocket-oauth", (event) => {
 
     pocketOAuth.getAccessToken()
         .then((accessToken) => {
+            if (window !== null) {
+                window.show();
+            }
             event.sender.send("pocket-oauth-reply", null, accessToken);
         })
         .catch((error: Error) => {
