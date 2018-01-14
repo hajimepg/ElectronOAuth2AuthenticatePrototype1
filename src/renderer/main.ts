@@ -9,6 +9,9 @@ const app = new Vue({
         googleErrorMessage: "",
         pocketAccessToken: "",
         pocketErrorMessage: "",
+        twitterAccessToken: "",
+        twitterAccessTokenSecret: "",
+        twitterErrorMessage: "",
     },
     methods: {
         googleAuth() {
@@ -20,7 +23,13 @@ const app = new Vue({
             this.$data.pocketAccessToken = "";
             this.$data.pocketErrorMessage = "";
             ipcRenderer.send("pocket-auth");
-        }
+        },
+        twitterAuth() {
+            this.$data.twitterAccessToken = "";
+            this.$data.twitterAccessTokenSecret = "";
+            this.$data.twitterErrorMessage = "";
+            ipcRenderer.send("twitter-auth");
+        },
     }
 });
 /* tslint:enable:object-literal-sort-keys */
@@ -40,5 +49,15 @@ ipcRenderer.on("pocket-auth-reply", (event, error, accessToken) => {
     }
     else {
         app.$data.pocketAccessToken = accessToken;
+    }
+});
+
+ipcRenderer.on("twitter-auth-reply", (event, error, accessToken, accessTokenSecret) => {
+    if (error !== null) {
+        app.$data.twitterErrorMessage = error;
+    }
+    else {
+        app.$data.twitterAccessToken = accessToken;
+        app.$data.twitterAccessTokenSecret = accessTokenSecret;
     }
 });

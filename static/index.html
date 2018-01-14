@@ -23,6 +23,15 @@
             <p v-else-if="pocketErrorMessage !== ''">
                 Error: {{ pocketErrorMessage }}
             </p>
+
+            <input type="button" v-on:click="twitterAuth" value="Twitter Auth">
+            <p v-if="twitterAccessToken !== ''">
+                Twitter Access Token: {{ twitterAccessToken }}<br />
+                Twitter Access Token Secret: {{ twitterAccessTokenSecret }}
+            </p>
+            <p v-else-if="twitterErrorMessage !== ''">
+                Error: {{ twitterErrorMessage }}
+            </p>
         </div>
         <script src="../dist/renderer/bundle.js"></script>
     </body>

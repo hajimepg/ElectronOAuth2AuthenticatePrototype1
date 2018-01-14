@@ -9,6 +9,7 @@ import * as lodash from "lodash";
 
 import GoogleAuth from "./googleAuth";
 import PocketAuth from "./pocketAuth";
+import TwitterAuth from "./twitterAuth";
 
 let window: BrowserWindow | null;
 
@@ -77,5 +78,22 @@ ipcMain.on("pocket-auth", (event) => {
         })
         .catch((error: Error) => {
             event.sender.send("pocket-auth-reply", error.message, null);
+        });
+});
+
+let twitterAuth: TwitterAuth;
+
+ipcMain.on("twitter-auth", (event) => {
+    twitterAuth = new TwitterAuth(authCredentials.twitter.consumer_key, authCredentials.twitter.consumer_secret);
+
+    twitterAuth.getAccessToken()
+        .then(({ accessToken, accessTokenSecret }) => {
+            if (window !== null) {
+                window.show();
+            }
+            event.sender.send("twitter-auth-reply", null, accessToken, accessTokenSecret);
+        })
+        .catch((error: Error) => {
+            event.sender.send("twitter-auth-reply", error.message, null, null);
         });
 });
