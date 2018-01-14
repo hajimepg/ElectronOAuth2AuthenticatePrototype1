@@ -2,7 +2,7 @@ import * as querystring from "querystring";
 import * as url from "url";
 
 import axios from "axios";
-import { BrowserWindow, shell } from "electron";
+import { shell } from "electron";
 import * as Koa from "koa";
 
 export default class PocketAuth {
