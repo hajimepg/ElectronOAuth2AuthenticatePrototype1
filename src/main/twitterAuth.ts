@@ -76,7 +76,6 @@ export default class TwitterAuth {
             })
             .catch((error) => {
                 reject(error);
-                return;
             });
         });
     }
